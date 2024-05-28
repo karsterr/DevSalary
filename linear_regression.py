@@ -7,6 +7,34 @@ from sklearn.metrics import mean_squared_error
 # Load the dataset
 df = pd.read_csv("cleaned_data.csv").copy()  # Make a copy of the DataFrame to avoid SettingWithCopyWarning
 
+# Assuming 'benefits' is the column with the categorical data
+benefits = df['benefits'].str.get_dummies(sep=', ')
+df = pd.concat([df, benefits], axis=1)
+
+# Now you can drop the original 'benefits' column as its information is now represented by the dummy variables
+df = df.drop(columns=['benefits'])
+
+# Assuming df is your DataFrame and 'employee_count' is the column with the categorical data
+employee_count = df['employee_count'].str.get_dummies()
+df = pd.concat([df, employee_count], axis=1)
+
+# Now you can drop the original 'employee_count' column as its information is now represented by the dummy variables
+df = df.drop(columns=['employee_count'])
+
+# Assuming df is your DataFrame and 'experience' is the column with the categorical data
+experience = df['experience'].str.get_dummies()
+df = pd.concat([df, experience], axis=1)
+
+# Now you can drop the original 'experience' column as its information is now represented by the dummy variables
+df = df.drop(columns=['experience'])
+
+# Assuming df is your DataFrame and 'lang_tool' is the column with the categorical data
+lang_tool = df['lang_tool'].str.get_dummies(sep=', ')
+df = pd.concat([df, lang_tool], axis=1)
+
+# Now you can drop the original 'lang_tool' column as its information is now represented by the dummy variables
+df = df.drop(columns=['lang_tool'])
+
 # Initialize LabelEncoder
 label_encoder = LabelEncoder()
 
