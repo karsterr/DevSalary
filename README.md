@@ -1,2 +1,2 @@
-# Deetcalary
-Software Developer Salaries Analysis and  Forecast
+# **DevSalary**
+Software developer salaries analysis and forecast with various data models
