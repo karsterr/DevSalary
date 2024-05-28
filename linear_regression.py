@@ -4,47 +4,34 @@ from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error
 
+def create_dummies(df, column, sep=None):
+    df[column] = df[column].fillna('None')  # Fill None values with 'None'
+    if sep is None:
+        dummies = df[column].str.get_dummies()
+    else:
+        dummies = df[column].str.get_dummies(sep=sep)
+    df = pd.concat([df, dummies], axis=1)
+    df = df.drop(columns=[column])
+    return df
+
 # Load the dataset
-df = pd.read_csv("cleaned_data.csv").copy()  # Make a copy of the DataFrame to avoid SettingWithCopyWarning
+df = pd.read_csv("cleaned_data.csv").copy()
 
-# Assuming 'benefits' is the column with the categorical data
-benefits = df['benefits'].str.get_dummies(sep=', ')
-df = pd.concat([df, benefits], axis=1)
-
-# Now you can drop the original 'benefits' column as its information is now represented by the dummy variables
-df = df.drop(columns=['benefits'])
-
-# Assuming df is your DataFrame and 'employee_count' is the column with the categorical data
-employee_count = df['employee_count'].str.get_dummies()
-df = pd.concat([df, employee_count], axis=1)
-
-# Now you can drop the original 'employee_count' column as its information is now represented by the dummy variables
-df = df.drop(columns=['employee_count'])
-
-# Assuming df is your DataFrame and 'experience' is the column with the categorical data
-experience = df['experience'].str.get_dummies()
-df = pd.concat([df, experience], axis=1)
-
-# Now you can drop the original 'experience' column as its information is now represented by the dummy variables
-df = df.drop(columns=['experience'])
-
-# Assuming df is your DataFrame and 'lang_tool' is the column with the categorical data
-lang_tool = df['lang_tool'].str.get_dummies(sep=', ')
-df = pd.concat([df, lang_tool], axis=1)
-
-# Now you can drop the original 'lang_tool' column as its information is now represented by the dummy variables
-df = df.drop(columns=['lang_tool'])
+# Create dummy variables for categorical columns
+for column in ['benefits', 'employee_count', 'experience', 'lang_tool']:
+    sep = ', ' if column == 'lang_tool' else None
+    df = create_dummies(df, column, sep)
 
 # Initialize LabelEncoder
 label_encoder = LabelEncoder()
 
-# Encode 'position' and 'level' columns using .loc to avoid SettingWithCopyWarning
-df.loc[:, 'position'] = label_encoder.fit_transform(df['position'])
-df.loc[:, 'level'] = label_encoder.fit_transform(df['level'])
+# Encode 'position' and 'level' columns
+for column in ['position', 'level']:
+    df.loc[:, column] = label_encoder.fit_transform(df[column])
 
 # Separate independent variables (X) and dependent variable (y)
-X = df.drop(columns=['timestamp', 'salary_currency', 'salary'])  # Independent variables
-y = df['salary']  # Dependent variable (salary)
+X = df.drop(columns=['timestamp', 'salary_currency', 'salary'])
+y = df['salary']
 
 # Split the data into training and testing sets
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
@@ -53,15 +40,7 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_
 model = LinearRegression()
 model.fit(X_train, y_train)
 
-# Make predictions on the training dataset
-train_predictions = model.predict(X_train)
-
-# Make predictions on the test dataset
-test_predictions = model.predict(X_test)
-
-# Evaluate the performance of the model
-train_rmse = mean_squared_error(y_train, train_predictions, squared=False)
-test_rmse = mean_squared_error(y_test, test_predictions, squared=False)
-
-print("Training set RMSE:", train_rmse)
-print("Test set RMSE:", test_rmse)
+# Make predictions and evaluate the performance of the model
+for dataset, predictions in [('Training', model.predict(X_train)), ('Test', model.predict(X_test))]:
+    rmse = mean_squared_error(y_train if dataset == 'Training' else y_test, predictions, squared=False)
+    print(f"{dataset} set RMSE: {rmse}")
